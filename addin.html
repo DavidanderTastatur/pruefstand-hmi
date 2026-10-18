@@ -1,20 +1,17 @@
 <!doctype html>
 <html lang="de"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow">
-<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Prüfstand HMI</title>
-<script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
-<style>html,body{margin:0;padding:0;width:100%;height:100%;background:#161617;overflow:hidden}
-iframe{position:fixed;inset:0;border:0;width:100%;height:100%;display:block;overflow:hidden}</style>
-</head><body><iframe id="hmi" src="index.html?v=2" scrolling="no" title="HMI-Entwurf Prüfstand"></iframe>
+<style>html,body{margin:0;height:100%;background:#161617;overflow:hidden}</style>
+</head><body>
 <script>
-(function(){
-  var f=document.getElementById('hmi');
-  function refit(){ try{ var w=f.contentWindow; if(w&&w.fit){ w.fit(); } }catch(e){} }
-  f.addEventListener('load',function(){ refit(); setTimeout(refit,300); setTimeout(refit,1200); });
-  window.addEventListener('resize',refit);
-  if(window.ResizeObserver){ new ResizeObserver(refit).observe(document.documentElement); }
-  document.addEventListener('visibilitychange',refit);
-  setInterval(refit,1500);
-  if(window.Office){ Office.onReady(function(){ refit(); }); }
-})();
+// Laedt die HMI direkt in dieses Fenster (ohne iframe) und ersetzt die Skalierung
+fetch('index.html?v='+Date.now(),{cache:'no-store'}).then(function(r){return r.text();}).then(function(s){
+  s=s.replace('#stage{position:absolute;left:50%;top:50%;width:1280px;height:800px;margin:-400px 0 0 -640px;transform-origin:center center;',
+              '#stage{position:absolute;left:0;top:0;width:1280px;height:800px;transform-origin:0 0;');
+  s=s.replace(/function fit\(\)\{[^\n]*\}\naddEventListener\('resize',fit\); fit\(\);/,
+   "function fit(){var de=document.documentElement,w=de.clientWidth||innerWidth,h=de.clientHeight||innerHeight;if(!w||!h)return;var sc=Math.min(w/1280,h/800),st=document.getElementById('stage');st.style.left=((w-1280*sc)/2)+'px';st.style.top=((h-800*sc)/2)+'px';st.style.transform='scale('+sc+')';}\n"+
+   "addEventListener('resize',fit);if(window.visualViewport)visualViewport.addEventListener('resize',fit);if(window.ResizeObserver)new ResizeObserver(fit).observe(document.documentElement);document.addEventListener('visibilitychange',fit);setInterval(fit,500);fit();");
+  s=s.replace('<title>','<script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"><\/script><title>');
+  document.open(); document.write(s); document.close();
+});
 </script></body></html>
